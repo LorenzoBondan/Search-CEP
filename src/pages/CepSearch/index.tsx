@@ -2,18 +2,28 @@ import './styles.css';
 
 import ResultCard from 'components/ResultCard';
 import { useState } from 'react';
+import axios from 'axios';
 
 // REPRESENTANDO OS DADOS DAS TEXTBOXES
 
 type FormData = {
   txtCEP : string; // os nomes tem que bater com a propriedade name do input
-  txtTest : string;
+  //txtTest : string;
+}
+
+// pra trazer os dados da API
+type Address = {
+  logradouro : string;
+  localidade : string;
 }
 
 const CepSearch = () => {
 
   // REPRESENTANDO OS DADOS DAS TEXTBOXES
-  const [formData, setFormData] = useState<FormData>({txtCEP: '', txtTest: ''});
+  const [formData, setFormData] = useState<FormData>({txtCEP: ''});
+
+  // pra trazer os dados da API
+  const [address, setAdress ] = useState<Address>();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => { // copiado ao passar o mouse em cima de onChange -> ChangeEvent sem o handler
     // sempre que mudar o conteúdo do input
@@ -26,9 +36,20 @@ const CepSearch = () => {
 
   const handleSubmit = (event : React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // evita que a página seja recarregada ao enviar o form
-    console.log("enviou");
-    console.log(formData);
-    console.log("cep: " + formData.txtCEP);
+    //console.log("enviou");
+    //console.log(formData);
+    //console.log("cep: " + formData.txtCEP);
+
+    axios.get(`https://viacep.com.br/ws/${formData.txtCEP}/json/`)
+    .then((response) => {
+      setAdress(response.data);
+      console.log(response.data);
+    })
+    .catch((error) => {
+      setAdress(undefined);
+      console.log(error);
+    });
+    
   }
 
   //onSubmit -> enviar o formulário
@@ -38,6 +59,7 @@ const CepSearch = () => {
       <div className="container search-container">
         <form onSubmit={handleSubmit}> 
           <div className="form-container">
+
             <input
               name='txtCEP'
               value={formData.txtCEP}
@@ -46,22 +68,19 @@ const CepSearch = () => {
               placeholder="CEP (somente números)"
               onChange={(handleChange)}
             />
-            <input
-              name='txtTest'
-              value={formData.txtTest}
-              type="text"
-              className="search-input"
-              placeholder="TEST"
-              onChange={(handleChange)}
-            />
+
             <button type="submit" className="btn btn-primary search-button">
               Buscar
             </button>
           </div>
         </form>
 
-        <ResultCard title="Logradouro" description="Lalala" />
-        <ResultCard title="Localidade" description="234" />
+        {address && 
+        <>
+        <ResultCard title="Logradouro" description={address?.logradouro} />
+        <ResultCard title="Localidade" description={address?.localidade} />
+        </>
+        }
 
       </div>
     </div>
